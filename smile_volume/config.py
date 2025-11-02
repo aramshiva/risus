@@ -1,13 +1,9 @@
-"""Persistent configuration storage."""
-
 import json
 from pathlib import Path
 from typing import Any
 
 
 class Config:
-    """Manages app configuration in ~/Library/Application Support/SmileVolume."""
-    
     DEFAULT_CONFIG = {
         "last_nonzero_volume": 50,
         "smile_on_threshold": 0.5,
@@ -26,29 +22,23 @@ class Config:
         self._data = self._load()
     
     def _load(self) -> dict[str, Any]:
-        """Load config from disk or create default."""
         if self.config_file.exists():
             try:
-                with open(self.config_file, "r") as f:
-                    loaded = json.load(f)
-                # Merge with defaults for any missing keys
-                return {**self.DEFAULT_CONFIG, **loaded}
+                with open(self.config_file, "r", encoding="utf-8") as f:
+                    return {**self.DEFAULT_CONFIG, **json.load(f)}
             except (json.JSONDecodeError, OSError):
                 pass
         return self.DEFAULT_CONFIG.copy()
     
     def save(self) -> None:
-        """Persist config to disk."""
         self.config_dir.mkdir(parents=True, exist_ok=True)
-        with open(self.config_file, "w") as f:
+        with open(self.config_file, "w", encoding="utf-8") as f:
             json.dump(self._data, f, indent=2)
     
     def get(self, key: str, default: Any = None) -> Any:
-        """Get configuration value."""
         return self._data.get(key, default)
     
     def set(self, key: str, value: Any) -> None:
-        """Set configuration value and save."""
         self._data[key] = value
         self.save()
     
